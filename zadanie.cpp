@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
 #include <limits>
@@ -29,6 +30,7 @@ int distance(int x1, int y1, int x2, int y2) {
 }
 
 void playerLogic(const vector<string>& map, const vector<Unit>& units, const vector<Base>& bases) {
+	vector <string> commands;
     for (const Unit& unit : units) {
         int targetX = -1;
         int targetY = -1;
@@ -49,40 +51,69 @@ void playerLogic(const vector<string>& map, const vector<Unit>& units, const vec
             cout << unit.id << " A " << targetX << " " << targetY << endl;
         }
     }
+	// Zapisz rozkazy do pliku
+	    ofstream ordersOutput("rozkazy.txt");
+	    if (ordersOutput.is_open()) {
+		for (const string& command : commands) {
+		    ordersOutput << command << endl;
+		}
+		ordersOutput.close();
+	    }
 }
 
 int main(int argc, char** argv) {
+	//sprawdzamy czy mamy włąściwą liczbę argumętów 
     if (argc < 4 || argc > 5) {
-        std::cerr << "Usage: " << argv[0] << " map.txt status.txt orders.txt [time_limit]" << std::endl;
+        cerr << "Usage: " << argv[0] << " map.txt status.txt orders.txt [time_limit]" << endl;
         return 1;
     }
 
-    string mapFile = argv[1];
-    string statusFile = argv[2];
-    string ordersFile = argv[3];
+    string mapFile = argv[1];//mapa
+    string statusFile = argv[2];//status
+    string ordersFile = argv[3];//rozkazy
     int timeLimit = (argc == 5) ? atoi(argv[4]) : 5;
 
     ifstream mapInput(mapFile.c_str());
+
     ifstream statusInput(statusFile.c_str());
     ofstream ordersOutput(ordersFile.c_str());
 
-    vector<std::string> map;
+    vector<string> map;
     vector<Unit> units;
     vector<Base> bases;
 
     string line;
     while (getline(mapInput, line)) {
+	
         map.push_back(line);
     }
 
-    int id, x, y, health;
+    // Odczytaj status jednostek i baz z pliku
+    int goldAmount;//ilość golda 
+    statusInput >> goldAmount;
 
-    while (statusInput >> id >> x >> y >> health) {
-        units.push_back({id, x, y, health});
-    }
+    string unitLine;
+    while (getline(statusInput, unitLine)) {
+        if (unitLine.empty()) {
+            continue;
+        }
+	//cout<<unitLine<<endl;
+	string player;
+        char type;
+        int id, x, y, health;
+        char producingUnit;
 
-    while (statusInput >> id >> x >> y >> health) {
-        bases.push_back({id, x, y, health});
+        istringstream iss(unitLine);
+        iss >> player >> type >> id >> x >> y >> health;
+	//cout<<iss<<endl;
+        if (player == "P") {
+            iss >> producingUnit;
+	cout<<"BASA"<<producingUnit;
+            //bases.push_back(Base( const & player, x, y, health, producingUnit));
+        } else if(player=="E"){
+	//przeciwnik
+           // units.push_back(Unit(const string& player, type, id, x, y, health));
+        }
     }
 
     playerLogic(map, units, bases);
