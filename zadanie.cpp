@@ -12,18 +12,30 @@
 using namespace std;
 
 struct Unit {
+	string player;
+char type;
     int id;
     int x;
     int y;
     int health;
 };
+struct Command {
+    int unitId;
+    char action;
+    std::string parameters;
+    int mx,my;
+};
 
 struct Base {
-    int player;
-    int x;
-    int y;
-    int health;
+	int id;
+	char player;
+	int x;
+	int y;
+	int health;
+	char producingUnit;
 };
+
+
 
 int distance(int x1, int y1, int x2, int y2) {
     return abs(x2 - x1) + abs(y2 - y1);
@@ -50,7 +62,7 @@ void playerLogic(const vector<string>& map, const vector<Unit>& units, const vec
         if (targetX != -1 && targetY != -1) {
             cout << unit.id << " A " << targetX << " " << targetY << endl;
         }
-    }
+    }/*
 	// Zapisz rozkazy do pliku
 	    ofstream ordersOutput("rozkazy.txt");
 	    if (ordersOutput.is_open()) {
@@ -58,7 +70,7 @@ void playerLogic(const vector<string>& map, const vector<Unit>& units, const vec
 		    ordersOutput << command << endl;
 		}
 		ordersOutput.close();
-	    }
+	    }*/
 }
 
 int main(int argc, char** argv) {
@@ -74,9 +86,9 @@ int main(int argc, char** argv) {
     int timeLimit = (argc == 5) ? atoi(argv[4]) : 5;
 
     ifstream mapInput(mapFile.c_str());
-
+	
     ifstream statusInput(statusFile.c_str());
-    ofstream ordersOutput(ordersFile.c_str());
+    ifstream ordersOutput(ordersFile.c_str());
 
     vector<string> map;
     vector<Unit> units;
@@ -87,35 +99,101 @@ int main(int argc, char** argv) {
 	
         map.push_back(line);
     }
+    string playerLine, enemyLine;
+    getline(statusInput, playerLine); // Wczytaj linijkę gracza
+    getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
 
-    // Odczytaj status jednostek i baz z pliku
-    int goldAmount;//ilość golda 
-    statusInput >> goldAmount;
+    long playerGold,enemyGold;
+// Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
+    if (playerLine[0] == 'P') {
+        playerGold = stoi(playerLine.substr(2));
+    } else if (playerLine[0] == 'E') {
+        enemyGold = stoi(playerLine.substr(2));
+    }
+    // Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
+    if (enemyLine[0] == 'P') {
+        playerGold = stoi(enemyLine.substr(2));
+    } else if (enemyLine[0] == 'E') {
+        enemyGold = stoi(enemyLine.substr(2));
+    }
+    cout << "Player gold: " << playerGold << endl;
+    cout << "Enemy gold: " << enemyGold << endl;
 
-    string unitLine;
-    while (getline(statusInput, unitLine)) {
-        if (unitLine.empty()) {
-            continue;
-        }
-	//cout<<unitLine<<endl;
-	string player;
+    while(getline(statusInput, line)) {
+        istringstream iss(line);
+        char player;
         char type;
-        int id, x, y, health;
-        char producingUnit;
+        int x, y, health,id;
+        iss >> player >> type >>id>> x >> y >> health;
 
-        istringstream iss(unitLine);
-        iss >> player >> type >> id >> x >> y >> health;
-	//cout<<iss<<endl;
-        if (player == "P") {
-            iss >> producingUnit;
-	cout<<"BASA"<<producingUnit;
-            //bases.push_back(Base( const & player, x, y, health, producingUnit));
-        } else if(player=="E"){
-	//przeciwnik
-           // units.push_back(Unit(const string& player, type, id, x, y, health));
+        if (player == 'P' || player == 'E') {
+	   if (type == 'B') {
+                Base base;
+                char producingUnit;
+                iss >> producingUnit;
+		base.producingUnit=producingUnit;	
+		base.id=id;
+		base.player=player;
+		base.x=x;
+		base.y=y;
+		base.health=health;
+		bases.push_back(base);
+          }//koniec if B
+	   else {
+		Unit unit;
+		unit.player=player;
+		unit.type=type;
+		unit.id=id;
+		unit.x=x;
+		unit.y=y;
+		unit.health=health;
+		units.push_back(unit);
+            }//koniec else
+        }//koniec pierwszy if
+    }//koniec while
+
+    
+
+    cout << "Bases:" << std::endl;
+    for (const auto& base : bases) {
+        //cout << base.player << " " <<base.id<<" "<< base.x << " " << base.y << " " << base.health << " " << base.producingUnit << std::endl;
+    }
+
+    cout << "Units:" << endl;
+    for (const auto& unit : units) {
+//        cout << unit.player << " " <<unit.type<<" "<<unit.id  << " " << unit.x << " " << unit.y << " " << unit.health << endl;
+    }
+    //ordersFile  ordersOutput
+    //vector<Command> commands = parseCommands(ordersOutput&);
+	//vector<Command> parseCommands(ifstream& filename) {
+
+    vector<Command> commands;
+
+    
+
+    //string line;
+    while (getline(ordersOutput, line)) {
+        Command command;
+        istringstream iss(line);
+
+        if (iss >> command.unitId >> command.action) {
+		if(command.action=='M'){
+			iss>>command.mx>>command.my;
+		}else{
+		iss>>command.parameters;
+		}
+		
+	
+            commands.push_back(command);
+        } else {
+            cout << "Invalid format in line: " << line << std::endl;
         }
     }
 
+
+
+	for (const Command& command : commands){
+		cout << "Unit ID: " << command.unitId << ", Action: " << command.action << ", Parameters: " << command.parameters << endl;}
     playerLogic(map, units, bases);
 
     return 0;
