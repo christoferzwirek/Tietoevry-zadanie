@@ -80,6 +80,19 @@ vector<AttackTable> attackTable = {
 int distance(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
+void addGoldToPlayers(long& playerGold, long& enemyGold, const vector<Unit>& units, const vector<string>& map) {
+    for (const auto& unit : units) {
+        // Sprawdzamy, czy jednostka typu Worker znajduje się na kopalni
+        if (unit.type == 'W' && map[unit.x][unit.y] == '6') {
+            // Dodajemy golda odpowiedniemu graczowi za każdą jednostkę typu Worker na kopalni
+            if (unit.player == "P") {
+                playerGold += 50; // Dodajemy golda graczowi P
+            } else if (unit.player == "E") {
+                enemyGold += 50; // Dodajemy golda graczowi E
+            }
+        }
+    }
+}
 int build(vector<Command> &commands,vector<Base>& bases,int i,int j,long &gold){
 if(bases[i].producingUnit!='0'){
 cout<<bases[i].producingUnit;
@@ -89,6 +102,7 @@ return 1;
 bases[i].producingUnit=commands[j].parameters;
 int index=F(commands[j].parameters);
 gold-=unitTypes[index].cost;
+bases[i].time=unitTypes[index].buildTime;
 return 0;
 }
 int F(char Type){
@@ -126,6 +140,57 @@ int getDamage( char attackerType, char defenderType) {
     }
 
     return 0;  // Jeżeli nie znaleziono jednostek, zwracamy 0
+}
+char checkGameStatus(const vector<Unit>& units) {
+    int playerUnits = 0;
+    int enemyUnits = 0;
+
+    for (const auto& unit : units) {
+        if (unit.player == "P") {
+            playerUnits++;
+        } else {
+            enemyUnits++;
+        }
+    }
+
+    if (playerUnits > enemyUnits) {
+        return 'P'; // Player wins
+    } else if (enemyUnits > playerUnits) {
+        return 'E'; // Enemy wins
+    } else {
+        return 'D'; // Draw (in case of equal number of units)
+    }
+}
+
+int findMaxID(const vector<Unit>& units, const vector<Base>& bases) {
+    int maxID = 0;
+
+    for (const auto& unit : units) {
+        if (unit.id > maxID) {
+            maxID = unit.id;
+        }
+    }
+
+    for (const auto& base : bases) {
+        if (base.id > maxID) {
+            maxID = base.id;
+        }
+    }
+
+    return maxID;
+}
+
+void addUnit(vector<Unit>& units, Base& base,const vector<Base>& bases) {
+    Unit newUnit;
+    newUnit.player = base.player;
+    newUnit.type = base.producingUnit;
+    newUnit.id = findMaxID( units, bases)+1 /* tutaj przypisz unikalne ID dla nowej jednostki */ ;
+    newUnit.x = base.x;
+    newUnit.y = base.y;
+    newUnit.health = unitTypes[F(newUnit.type)].health;
+    newUnit.ruch = unitTypes[F(newUnit.type)].speed;
+
+    units.push_back(newUnit);
 }
 string getPlayerByID(const vector<Unit>& units, int id) {
     for (const auto& unit : units) {
@@ -211,7 +276,8 @@ int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vecto
 	int j=0;
 	start:
 		
-	for (const auto& unit : units){
+	for(i=0;i<units.size();i++){
+
 		if(units[i].id==commands[j].id){
 			//cout<<units[i].id;
 
@@ -229,7 +295,7 @@ int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vecto
 		}
 	}
 	
-	cout<<"brak ID"<<commands[i].id;
+	cout<<"brak ID"<<commands[i].id<<" A "<<endl;
 	
 	a:
 	j++;
@@ -238,13 +304,13 @@ int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vecto
 
 }
 
-void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &playerGold, long &enemyGold,string statusFile) {
+void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &playerGold, long &enemyGold,string statusFile,int tura) {
     ofstream statusOutput(statusFile);
     if (!statusOutput) {
         cout << "Błąd podczas otwierania pliku status.txt" << endl;
         return;
     }
-
+statusOutput <<tura<<endl;
     // Zapisz stan złota gracza i przeciwnika
     statusOutput << "P " << playerGold << endl;
     statusOutput << "E " << enemyGold << endl;
@@ -256,7 +322,7 @@ void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &play
 
     // Zapisz dane baz
     for (const auto& base : bases) {
-        statusOutput << base.player <<" B"<< " " << base.id << " " << base.x << " " << base.y << " " << base.health << " " << base.producingUnit << endl;
+        statusOutput << base.player <<" B"<< " " << base.id << " " << base.x << " " << base.y << " " << base.health << " " << base.producingUnit <<" "<<base.time<< endl;
     }
 
     statusOutput.close();
@@ -286,11 +352,16 @@ int main(int argc, char** argv) {
 
     string line;
     long playerGold,enemyGold;
+    int tura;
     while (getline(mapInput, line)) {
 	
         map.push_back(line);
     }
-    string playerLine, enemyLine;
+    string playerLine, enemyLine,tural;
+    getline(statusInput, tural,'\n');
+
+	tura=stoi(tural);
+
     getline(statusInput, playerLine); // Wczytaj linijkę gracza
     getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
 
@@ -304,30 +375,35 @@ int main(int argc, char** argv) {
     // Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
     if (enemyLine[0] == 'P') {
         playerGold = stoi(enemyLine.substr(2));
-    } else if (enemyLine[0] == 'E') {
+    } else{
         enemyGold = stoi(enemyLine.substr(2));
     }
-    cout << "Player gold: " << playerGold << endl;
-    cout << "Enemy gold: " << enemyGold << endl;
+   
 
     while(getline(statusInput, line)) {
         istringstream iss(line);
         char player;
         char type;
         int x, y, health,id;
+	int Btime;
         iss >> player >> type >>id>> x >> y >> health;
 
         if (player == 'P' || player == 'E') {
 	   if (type == 'B') {
                 Base base;
                 char producingUnit;
-                iss >> producingUnit;
+                iss >> producingUnit>>Btime;
 		base.producingUnit=producingUnit;	
 		base.id=id;
 		base.player=player;
 		base.x=x;
 		base.y=y;
 		base.health=health;
+		if(tura%2==0 && player=='E'){
+		Btime-=1;}
+		if(tura%2==1 && player=='P'){
+		Btime-=1;}
+		base.time=Btime;
 		bases.push_back(base);
           }//koniec if B
 	   else {
@@ -345,22 +421,13 @@ int main(int argc, char** argv) {
             }//koniec else
         }//koniec pierwszy if
     }//koniec while
+	for ( auto& base : bases){
+    if(base.time==0){
+	addUnit( units, base,bases);
+	base.producingUnit='0';
+}}
 
     
-
-    cout << "Bases:" << std::endl;
-    for (const auto& base : bases) {
-        cout << base.player << " " <<base.id<<" "<< base.x << " " << base.y << " " << base.health << " " << base.producingUnit << std::endl;
-    }
-
-    cout << "Units:" << endl;
-    for (const auto& unit : units) {
-        cout << unit.player << " " <<unit.type<<" "<<unit.id  << " " << unit.x << " " << unit.y << " " << unit.health << endl;
-    }
-    //ordersFile  ordersOutput
-    //vector<Command> commands = parseCommands(ordersOutput&);
-	//vector<Command> parseCommands(ifstream& filename) {
-
     vector<Command> commands;
 	for ( auto& unit : units) {
 		}
@@ -390,17 +457,37 @@ int main(int argc, char** argv) {
 
 
 
-	for (const Command& command : commands){
+	//for (const Command& command : commands){
 		
-		cout << "Unit ID: " << command.id << ", Action: " << command.action << ", Parameters: " << command.parameters << endl;}
+		//cout << "Unit ID: " << command.id << ", Action: " << command.action << ", Parameters: " << command.parameters << endl;}
 
 
 	com(commands,units,bases,map, playerGold, enemyGold);
-	cout << "Bases:" << std::endl;
-    for (const auto& base : units) {
-        cout << base.player << " " <<base.id<<" "<< base.x << " " << base.y << " " << base.health ;//<< " " << base.producingUnit << std::endl;
+	//cout << "Bases:" << std::endl;
+    
+    tura+=1;
+	
+	if(tura==2000){
+		char W=checkGameStatus( units);
+		if (W=='P') {
+       cout<<"wygrał gracz P\n";
+    } else if (W=='E') {
+       cout<<"wygrał gracz E\n";
+    } else if (W=='D'){
+	cout<<"remis\n";
     }
-    saveStatus(units,bases,playerGold,enemyGold,statusFile);
+	}
+    addGoldToPlayers(playerGold,enemyGold, units, map);
+    saveStatus(units,bases,playerGold,enemyGold,statusFile,tura);
+	for ( auto& base : bases){
+		if(base.health<=0){
+			if(base.player=='P'){
+			cout<<"wygrał gracz E";			
+			}else{
+			cout<<"wygrał gracz E";
+			}
+		}
+}
     return 0;
 }
 
