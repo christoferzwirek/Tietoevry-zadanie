@@ -1,2 +1,2 @@
-play :zadanie.cpp
-	g++ -o play -std=c++17 zadanie.cpp
+play :main.cpp
+	g++ -o play -std=c++17 main.cpp
