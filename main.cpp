@@ -82,7 +82,7 @@ vector<AttackTable> attackTable = {
 int distance(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
-//funkcja do dodawania golda graczą
+//funkcja do dodawania golda graczom
 void addGoldToPlayers(long& playerGold, long& enemyGold, const vector<Unit>& units, const vector<string>& map) {
     for (const auto& unit : units) {
         // Sprawdzamy, czy jednostka typu Worker znajduje się na kopalni
@@ -109,7 +109,7 @@ gold-=unitTypes[index].cost;
 bases[i].time=unitTypes[index].buildTime;
 return 0;
 }
-//funkcja do znalanienia odpowiedniej jednostki w tebeli unitTypes za pomocą typu
+//funkcja do znajdowania odpowiedniej jednostki w tebeli unitTypes za pomocą typu
 int F(char Type){
 
 
@@ -133,7 +133,7 @@ int findUnitIndexByID(const vector<Unit>& units, int id) {
             return i;  // Zwracamy indeks jednostki
         }
     }
-    // Jeśli nie znaleziono jednostki o podanym ID, zwracamy -1 lub inny wartość sygnalizującą brak znalezienia
+    // Jeśli nie znaleziono jednostki o podanym ID, zwracamy -1 lub inną wartość sygnalizującą brak znalezienia
     return -1;
 }
 //funkcja do pobierania zadanego HP wrogowi
@@ -186,7 +186,7 @@ int findMaxID(const vector<Unit>& units, const vector<Base>& bases) {
 
     return maxID;
 }
-//funkcja do dodawanie jednostek
+//funkcja do dodawania jednostek
 void addUnit(vector<Unit>& units, Base& base,const vector<Base>& bases) {
     Unit newUnit;
     newUnit.player = base.player;
@@ -210,7 +210,7 @@ string getPlayerByID(const vector<Unit>& units, int id) {
     return '\0';
 }
 
-//fukcja do sprawdzanie czy pole jest zajęte
+//fukcja do sprawdzania czy pole jest zajęte
 bool unitmap(vector<Unit> &units,Command& commands){
 	string a=getPlayerByID(units,commands.id );
 	for (const auto& unit : units){
@@ -230,7 +230,7 @@ int maxx=map.size();
 
 	//sprawdzamy czy nie wychodzimy poza mapę 
 	if(commands[j].mx>=maxx ||commands[j].my>=maxy){
-		cout<<"nieprawidłowe współżędne";
+		cout<<"nieprawidłowe współrzędne";
 	//sprawdzamy czy pole na mapie jest wolne lub czy Worker może wejść do kopalni
 	}else if(map[commands[j].mx][commands[j].my]=='0' || (map[commands[j].mx][commands[j].my]=='6' && units[i].type=='W')) {
 		int a=F(units[i].type);//sprawdzenie czy można tak daleko ruszać się
@@ -247,12 +247,12 @@ int maxx=map.size();
 			     }
 			}
 	}else{
-		cout<<"nie prawidłowy ruch";
+		cout<<"nieprawidłowy ruch";
 }
 }
 else if(commands[j].action=='A'){
 //atakowanie 
-	int a=F(units[i].type);//sprawdzenie czy można tak dalego atakować
+	int a=F(units[i].type);//sprawdzenie czy można tak daleko atakować
 	string P= getPlayerByID (units,commands[j].id);
 	string P2= getPlayerByID (units,commands[j].id2);
 	int enemyID=findUnitIndexByID(units, commands[j].id2);
