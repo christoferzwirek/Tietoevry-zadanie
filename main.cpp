@@ -168,7 +168,7 @@ char checkGameStatus(const vector<Unit>& units) {
         return 'D'; // Draw (in case of equal number of units)
     }
 }
-//funkcja znajduje maksymalnie wykożystane ID
+//funkcja znajduje maksymalnie wykorzystane ID
 int findMaxID(const vector<Unit>& units, const vector<Base>& bases) {
     int maxID = 0;
 
@@ -218,7 +218,7 @@ bool unitmap(vector<Unit> &units,Command& commands){
 				}
 	return false;
 }
-//funkcja do wykonywania akcji z rozkaów
+//funkcja do wykonywania akcji z rozkazów
 void action(vector<Command>& commands,vector<Unit> &units,int i,int j,vector<string> &map){
 
 if(commands[j].action=='M'){
@@ -233,7 +233,7 @@ int maxx=map.size();
 		cout<<"nieprawidłowe współżędne";
 	//sprawdzamy czy pole na mapie jest wolne lub czy Worker może wejść do kopalni
 	}else if(map[commands[j].mx][commands[j].my]=='0' || (map[commands[j].mx][commands[j].my]=='6' && units[i].type=='W')) {
-		int a=F(units[i].type);//sprawdzenie czy można tak dalego ruszać się
+		int a=F(units[i].type);//sprawdzenie czy można tak daleko ruszać się
 
 		if(distance(units[i].x,units[i].y,commands[j].mx,commands[j].my)>unitTypes[a].speed){
 			cout<<"za duża odległość do pokonania";
@@ -340,7 +340,7 @@ void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &play
 
 //main
 int main(int argc, char** argv) {
-	//sprawdzamy czy mamy włąściwą liczbę argumętów 
+	//sprawdzamy czy mamy właściwą liczbę argumentów 
     if (argc < 4 || argc > 5) {
         cerr << "Usage: " << argv[0] << " map.txt status.txt orders.txt [time_limit]" << endl;
         return 1;
@@ -389,7 +389,7 @@ int main(int argc, char** argv) {
         enemyGold = stoi(enemyLine.substr(2));
     }
    
-	//wczystywanie jednostek i budowli
+	//wczytywanie jednostek i budowli
     while(getline(statusInput, line)) {
         istringstream iss(line);
         char player;
