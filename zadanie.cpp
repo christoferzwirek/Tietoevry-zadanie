@@ -12,24 +12,26 @@ using namespace std;
 
 
 int F(char Type);
+//Definicja struktur przechowująca dane jednostek podczas gry
 struct Unit {
-    string player;
-    char type;
-    int id;
-    int x;
-    int y;
-    int health;
-    int ruch;
+	string player;
+	char type;
+	int id;
+	int x;
+	int y;
+	int health;
+    	int ruch;
 	bool atak=true;
 };
+//Definicja struktur przechowująca dane command(rozkazy)
 struct Command {
-    int id;
-    int id2;
-    char action;
-    char parameters;
-    int mx,my;
+	int id;
+    	int id2;
+    	char action;
+    	char parameters;
+    	int mx,my;
 };
-
+//Definicja struktur przechowująca dane bazy podczas gry
 struct Base {
 	int id;
 	char player;
@@ -40,13 +42,14 @@ struct Base {
 	int time;
 	
 };
+//Definicja struktur przechowująca dane jednostek
 struct UnitType {
-    char symbol;      // Typ jednostki (K, S, A, P, R, C, W, B)
-    int health;       // Wytrzymałość
-    int speed;        // Prędkość
-    int cost;         // Koszt zakupu
-    int attackRange;  // Zasięg ataku
-    int buildTime;    // Czas budowania
+    	char symbol;      // Typ jednostki (K, S, A, P, R, C, W, B)
+	int health;       // Wytrzymałość
+	int speed;        // Prędkość
+    	int cost;         // Koszt zakupu
+    	int attackRange;  // Zasięg ataku
+    	int buildTime;    // Czas budowania
 };
 
 //lista jednostek
@@ -60,10 +63,10 @@ vector<UnitType> unitTypes = {
     {'W', 20, 2, 100, 1, 2},
     {'B', 200, 0, 0, 0, 0}  // Użyj 0 jako zastępczą wartość dla kosztu zakupu, zasięgu ataku i czasu budowania dla bazy
 };
-
+//Definicja struktur przechowująca dane dotyczące ataku jednostek
 struct AttackTable {
-    char unitType;
-    vector<int> damageValues;
+    	char unitType;
+    	vector<int> damageValues;
 };
 vector<AttackTable> attackTable = {
         {'K', {35, 35, 5, 35, 35, 50, 35, 35}},
@@ -79,6 +82,7 @@ vector<AttackTable> attackTable = {
 int distance(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
+//funkcja do dodawania golda graczą
 void addGoldToPlayers(long& playerGold, long& enemyGold, const vector<Unit>& units, const vector<string>& map) {
     for (const auto& unit : units) {
         // Sprawdzamy, czy jednostka typu Worker znajduje się na kopalni
@@ -92,6 +96,7 @@ void addGoldToPlayers(long& playerGold, long& enemyGold, const vector<Unit>& uni
         }
     }
 }
+//funkcja do budowania jednostek
 int build(vector<Command> &commands,vector<Base>& bases,int i,int j,long &gold){
 if(bases[i].producingUnit!='0'){
 cout<<bases[i].producingUnit;
@@ -104,8 +109,9 @@ gold-=unitTypes[index].cost;
 bases[i].time=unitTypes[index].buildTime;
 return 0;
 }
+//funkcja do znalanienia odpowiedniej jednostki w tebeli unitTypes za pomocą typu
 int F(char Type){
-//cout<<unitTypes.size();
+
 
 	for(int i=0;i<unitTypes.size();i++){
 	if(unitTypes[i].symbol==Type){
@@ -130,6 +136,7 @@ int findUnitIndexByID(const vector<Unit>& units, int id) {
     // Jeśli nie znaleziono jednostki o podanym ID, zwracamy -1 lub inny wartość sygnalizującą brak znalezienia
     return -1;
 }
+//funkcja do pobierania zadanego HP wrogowi
 int getDamage( char attackerType, char defenderType) {
     int attackerIndex = getUnitIndex(attackTable, attackerType);
     int defenderIndex = getUnitIndex(attackTable, defenderType);
@@ -140,6 +147,7 @@ int getDamage( char attackerType, char defenderType) {
 
     return 0;  // Jeżeli nie znaleziono jednostek, zwracamy 0
 }
+//funkcja sprawdza kto ma więcej jednostek w przypadku konca czasu
 char checkGameStatus(const vector<Unit>& units) {
     int playerUnits = 0;
     int enemyUnits = 0;
@@ -160,7 +168,7 @@ char checkGameStatus(const vector<Unit>& units) {
         return 'D'; // Draw (in case of equal number of units)
     }
 }
-
+//funkcja znajduje maksymalnie wykożystane ID
 int findMaxID(const vector<Unit>& units, const vector<Base>& bases) {
     int maxID = 0;
 
@@ -178,7 +186,7 @@ int findMaxID(const vector<Unit>& units, const vector<Base>& bases) {
 
     return maxID;
 }
-
+//funkcja do dodawanie jednostek
 void addUnit(vector<Unit>& units, Base& base,const vector<Base>& bases) {
     Unit newUnit;
     newUnit.player = base.player;
@@ -191,6 +199,7 @@ void addUnit(vector<Unit>& units, Base& base,const vector<Base>& bases) {
 
     units.push_back(newUnit);
 }
+//funkcja do sprawdzania przynależności danej jednostki za pomocą ID
 string getPlayerByID(const vector<Unit>& units, int id) {
     for (const auto& unit : units) {
         if (unit.id == id) {
@@ -204,13 +213,12 @@ string getPlayerByID(const vector<Unit>& units, int id) {
 //fukcja do sprawdzanie czy pole jest zajęte
 bool unitmap(vector<Unit> &units,Command& commands){
 	string a=getPlayerByID(units,commands.id );
-	//cout<<commands.id;
-	//string a;
 	for (const auto& unit : units){
 		if((unit.x==commands.mx &&unit.y==commands.my) && (unit.player != a))return true;
 				}
 	return false;
 }
+//funkcja do wykonywania akcji z rozkaów
 void action(vector<Command>& commands,vector<Unit> &units,int i,int j,vector<string> &map){
 
 if(commands[j].action=='M'){
@@ -224,12 +232,11 @@ int maxx=map.size();
 	if(commands[j].mx>=maxx ||commands[j].my>=maxy){
 		cout<<"nieprawidłowe współżędne";
 	//sprawdzamy czy pole na mapie jest wolne lub czy Worker może wejść do kopalni
-	}else if(map[commands[j].mx][commands[j].my]=='0' || 
-(map[commands[j].mx][commands[j].my]=='6' && units[i].type=='W')) {
+	}else if(map[commands[j].mx][commands[j].my]=='0' || (map[commands[j].mx][commands[j].my]=='6' && units[i].type=='W')) {
 		int a=F(units[i].type);//sprawdzenie czy można tak dalego ruszać się
 
 		if(distance(units[i].x,units[i].y,commands[j].mx,commands[j].my)>unitTypes[a].speed){
-		cout<<"za duża odległość do pokonania";
+			cout<<"za duża odległość do pokonania";
 		}else{
 			if(unitmap(units,commands[j])){
 				cout<<"miejsce zajęte";
@@ -240,7 +247,7 @@ int maxx=map.size();
 			     }
 			}
 	}else{
-	cout<<"nie prawidłowy ruch";
+		cout<<"nie prawidłowy ruch";
 }
 }
 else if(commands[j].action=='A'){
@@ -249,26 +256,29 @@ else if(commands[j].action=='A'){
 	string P= getPlayerByID (units,commands[j].id);
 	string P2= getPlayerByID (units,commands[j].id2);
 	int enemyID=findUnitIndexByID(units, commands[j].id2);
-	//cout<<distance(units[enemyID].x,units[enemyID].y,units[i].x,units[i].y);
-	//cout<<units[i].type;
+	
 		if(distance(units[enemyID].x,units[enemyID].y,units[i].x,units[i].y)>unitTypes[a].attackRange){
-		cout<<"za duża odległość do atakowania";
+			cout<<"za duża odległość do atakowania";
 		}else if(units[i].ruch<=1){
-		cout<<"brak punktów ruchu";
+			cout<<"brak punktów ruchu";
 		}else if(units[i].player==P2){
-		cout<<"nie można atakować własnych jednostek";
+			cout<<"nie można atakować własnych jednostek";
 		}else{
-		units[i].ruch-=1;
-		units[i].atak=false;
-		int DMG=getDamage(units[i].type,units[enemyID].type) ;
-		units[enemyID].health-=DMG;
-		if(units[enemyID].health<=0)units.erase(units.begin()+a);
+			units[i].ruch-=1;
+			units[i].atak=false;
+			int DMG=getDamage(units[i].type,units[enemyID].type) ;
+			units[enemyID].health-=DMG;
+		if(units[enemyID].health<=0)
+			units.erase(units.begin()+a);
 		}
 }
-else{cout<<"nie poprawna akcja";}
+else{
+	cout<<"nie poprawna akcja";}
 
 
 }//koniec funkcji
+
+//funkcja do wykowynania wszystkich rozkazów
 int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vector<string> &map,long &playerGold,long &enemygold){
 
 	int i=0;
@@ -278,19 +288,19 @@ int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vecto
 	for(i=0;i<units.size();i++){
 
 		if(units[i].id==commands[j].id){
-			//cout<<units[i].id;
-
 			action(commands,units,i,j,map);
 			goto a;	
 		}
 	}
 	for(i=0;i<bases.size();i++){
 		if(bases[i].id==commands[j].id){
-		
-				if(bases[i].player=='P'){
-				build(commands,bases,i,j,playerGold);}
-				else{ build(commands,bases,i,j,enemygold);}
-				goto a;	
+			if(bases[i].player=='P'){
+				build(commands,bases,i,j,playerGold);
+			}
+			else{
+				build(commands,bases,i,j,enemygold);
+			}
+			goto a;	
 		}
 	}
 	
@@ -303,13 +313,14 @@ int com(vector<Command> &commands,vector<Unit> &units,vector<Base>& bases, vecto
 
 }
 
+//funkcja do zapisywania stanu gry
 void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &playerGold, long &enemyGold,string statusFile,int tura) {
     ofstream statusOutput(statusFile);
     if (!statusOutput) {
         cout << "Błąd podczas otwierania pliku status.txt" << endl;
         return;
     }
-statusOutput <<tura<<endl;
+    statusOutput <<tura<<endl;
     // Zapisz stan złota gracza i przeciwnika
     statusOutput << "P " << playerGold << endl;
     statusOutput << "E " << enemyGold << endl;
@@ -327,7 +338,7 @@ statusOutput <<tura<<endl;
     statusOutput.close();
 }
 
-
+//main
 int main(int argc, char** argv) {
 	//sprawdzamy czy mamy włąściwą liczbę argumętów 
     if (argc < 4 || argc > 5) {
@@ -359,7 +370,7 @@ int main(int argc, char** argv) {
     string playerLine, enemyLine,tural;
     getline(statusInput, tural,'\n');
 
-	tura=stoi(tural);
+    tura=stoi(tural);
 
     getline(statusInput, playerLine); // Wczytaj linijkę gracza
     getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
@@ -378,7 +389,7 @@ int main(int argc, char** argv) {
         enemyGold = stoi(enemyLine.substr(2));
     }
    
-
+	//wczystywanie jednostek i budowli
     while(getline(statusInput, line)) {
         istringstream iss(line);
         char player;
@@ -421,18 +432,14 @@ int main(int argc, char** argv) {
         }//koniec pierwszy if
     }//koniec while
 	for ( auto& base : bases){
-    if(base.time==0){
-	addUnit( units, base,bases);
-	base.producingUnit='0';
-}}
-
+		if(base.time==0){
+			addUnit( units, base,bases);
+			base.producingUnit='0';
+		}
+	}
     
     vector<Command> commands;
-	for ( auto& unit : units) {
-		}
-    
 
-    //string line;
     while (getline(ordersOutput, line)) {
         Command command;
         istringstream iss(line);
@@ -441,12 +448,11 @@ int main(int argc, char** argv) {
 		if(command.action=='M'){
 			iss>>command.mx>>command.my;
 		}else if(command.action=='B') {
-		iss>>command.parameters;
-		//command.mx=NULL;
+			iss>>command.parameters;
 		}
 		else{
 		iss>>command.id2;
-}
+		}
 	
             commands.push_back(command);
         } else {
@@ -454,15 +460,8 @@ int main(int argc, char** argv) {
         }
     }
 
-
-
-	//for (const Command& command : commands){
-		
-		//cout << "Unit ID: " << command.id << ", Action: " << command.action << ", Parameters: " << command.parameters << endl;}
-
-
 	com(commands,units,bases,map, playerGold, enemyGold);
-	//cout << "Bases:" << std::endl;
+
     
     tura+=1;
 	
@@ -486,7 +485,7 @@ int main(int argc, char** argv) {
 			cout<<"wygrał gracz E";
 			}
 		}
-}
+	}
     return 0;
-}
+}//koniec main
 
