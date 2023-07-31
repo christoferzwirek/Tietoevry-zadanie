@@ -207,7 +207,7 @@ string getPlayerByID(const vector<Unit>& units, int id) {
         }
     }
     // Jeśli nie znaleziono jednostki o podanym ID, zwracamy pusty znak
-    return "\0";
+    return "0";
 }
 
 //fukcja do sprawdzania czy pole jest zajęte
