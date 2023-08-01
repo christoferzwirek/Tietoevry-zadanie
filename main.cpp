@@ -4,8 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
-
+#include <string>
+#include <algorithm>
 
 
 using namespace std;
@@ -98,16 +98,16 @@ void addGoldToPlayers(long& playerGold, long& enemyGold, const vector<Unit>& uni
 }
 //funkcja do budowania jednostek
 int build(vector<Command> &commands,vector<Base>& bases,int i,int j,long &gold){
-if(bases[i].producingUnit!='0'){
-cout<<bases[i].producingUnit;
-cout<<"\nBaza już buduje\n";
-return 1;
-}
-bases[i].producingUnit=commands[j].parameters;
-int index=F(commands[j].parameters);
-gold-=unitTypes[index].cost;
-bases[i].time=unitTypes[index].buildTime;
-return 0;
+	if(bases[i].producingUnit!='0'){
+		cout<<bases[i].producingUnit;
+		cout<<"\nBaza już buduje\n";
+	return 1;
+	}
+	bases[i].producingUnit=commands[j].parameters;
+	int index=F(commands[j].parameters);
+	gold-=unitTypes[index].cost;
+	bases[i].time=unitTypes[index].buildTime;
+	return 0;
 }
 //funkcja do znajdowania odpowiedniej jednostki w tebeli unitTypes za pomocą typu
 int F(char Type){
@@ -207,7 +207,7 @@ string getPlayerByID(const vector<Unit>& units, int id) {
         }
     }
     // Jeśli nie znaleziono jednostki o podanym ID, zwracamy pusty znak
-    return "0";
+    return "\0";
 }
 
 //fukcja do sprawdzania czy pole jest zajęte
@@ -350,34 +350,54 @@ int main(int argc, char** argv) {
     string statusFile = argv[2];//status
     string ordersFile = argv[3];//rozkazy
     int timeLimit = (argc == 5) ? atoi(argv[4]) : 5;
-
-    ifstream mapInput(mapFile.c_str());
 	
+
+    ifstream mapInput(mapFile.c_str()); 
     ifstream statusInput(statusFile.c_str());
     ifstream ordersOutput(ordersFile.c_str());
 
+    if (!statusInput || statusInput.peek() == ifstream::traits_type::eof()) {
+        std::cout << "Plik status.txt jest pusty lub nie istnieje." << std::endl;
+        return 1; // Możesz zakończyć program.
+    }
+	
     vector<string> map;
     vector<Unit> units;
     vector<Base> bases;
-
+    
     string line;
     long playerGold,enemyGold;
-    int tura;
+    int tura=10;
+
     while (getline(mapInput, line)) {
 	
         map.push_back(line);
     }
+
+
     string playerLine, enemyLine,tural;
-    getline(statusInput, tural,'\n');
+    getline(statusInput, tural);
+	cout<<tural<<endl;
+	//tural=tural.substr(2);
+	//tural.erase(remove_if(tural.begin(), tural.end(), [](char c) { return c == '\0'; }), tural.end());
 
+	
+
+	
+	
     tura=stoi(tural);
+	  
+cout<<tura<<endl;
 
+	
     getline(statusInput, playerLine); // Wczytaj linijkę gracza
     getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
+    //playerLine.erase(remove_if(playerLine.begin(), playerLine.end(), [](char c) { return c == '\0'; }), playerLine.end());
 
-    
+    //enemyLine.erase(remove_if(enemyLine.begin(), enemyLine.end(), [](char c) { return c == '\0'; }), enemyLine.end());
 // Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
     if (playerLine[0] == 'P') {
+
         playerGold = stoi(playerLine.substr(2));
     } else if (playerLine[0] == 'E') {
         enemyGold = stoi(playerLine.substr(2));
@@ -388,7 +408,7 @@ int main(int argc, char** argv) {
     } else{
         enemyGold = stoi(enemyLine.substr(2));
     }
-   
+
 	//wczytywanie jednostek i budowli
     while(getline(statusInput, line)) {
         istringstream iss(line);
@@ -432,7 +452,7 @@ int main(int argc, char** argv) {
         }//koniec pierwszy if
     }//koniec while
 	for ( auto& base : bases){
-		if(base.time==0){
+		if(base.time==0 && base.producingUnit!='0'){
 			addUnit( units, base,bases);
 			base.producingUnit='0';
 		}
@@ -458,9 +478,13 @@ int main(int argc, char** argv) {
         } else {
             cout << "Invalid format in line: " << line << std::endl;
         }
-    }
 
-	com(commands,units,bases,map, playerGold, enemyGold);
+    }//koniec while
+       if(commands.empty()){
+		cout<<"brak rozkazów do wykonania.\n";
+	}else{
+		com(commands,units,bases,map, playerGold, enemyGold);
+	     }
 
     
     tura+=1;
@@ -486,6 +510,11 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+
+	mapInput.close();
+	
+	statusInput.close();
+ 	ordersOutput.close();
     return 0;
 }//koniec main
 
