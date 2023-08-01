@@ -117,6 +117,7 @@ int F(char Type){
 	if(unitTypes[i].symbol==Type){
 		return i;}
 	}
+	return 0;
 }
 // Funkcja do pobierania indeksu jednostki w tabeli ataku na podstawie jej typu
 int getUnitIndex(const vector<AttackTable>& attackTable, char unitType) {
@@ -338,6 +339,7 @@ void saveStatus(const vector<Unit>& units, const vector<Base>& bases, long &play
     statusOutput.close();
 }
 
+
 //main
 int main(int argc, char** argv) {
 	//sprawdzamy czy mamy właściwą liczbę argumentów 
@@ -345,7 +347,7 @@ int main(int argc, char** argv) {
         cerr << "Usage: " << argv[0] << " map.txt status.txt orders.txt [time_limit]" << endl;
         return 1;
     }
-
+    int tryb=0;
     string mapFile = argv[1];//mapa
     string statusFile = argv[2];//status
     string ordersFile = argv[3];//rozkazy
@@ -353,11 +355,13 @@ int main(int argc, char** argv) {
 	
 
     ifstream mapInput(mapFile.c_str()); 
-    ifstream statusInput(statusFile.c_str());
+    ifstream statusInput2(statusFile.c_str());
+
+    		ifstream statusInput(statusFile.c_str());
     ifstream ordersOutput(ordersFile.c_str());
 
-    if (!statusInput || statusInput.peek() == ifstream::traits_type::eof()) {
-        std::cout << "Plik status.txt jest pusty lub nie istnieje." << std::endl;
+    if (!statusInput2 || statusInput2.peek() == ifstream::traits_type::eof()) {
+        cout << "Plik status.txt jest pusty lub nie istnieje." << endl;
         return 1; // Możesz zakończyć program.
     }
 	
@@ -373,39 +377,111 @@ int main(int argc, char** argv) {
 	
         map.push_back(line);
     }
+	// Sprawdzamy, czy wektor zawiera co najmniej jedno wystąpienie 1 i 2
+    bool containsOne = false;
+	for(const string& num : map){
+	if(num.find("1") != string::npos){containsOne = true;break;}
+	}
+     bool containsTwo = false;
+	for(const string& num : map){
+	if(num.find("2") != string::npos){containsTwo = true;break;}
+	}
+    // Sprawdzamy, czy wszystkie liczby są większe od 2
+    bool allGreaterTwo = map.size()>2;
 
+    if (containsOne && containsTwo && allGreaterTwo ) {
+        //cout << "Plik mapa.txt spełnia wszystkie warunki." << endl;
+    } else {
+        cout << "Plik mapa.txt nie spełnia wszystkich warunków." << endl;
+    }
 
     string playerLine, enemyLine,tural;
-    getline(statusInput, tural);
+    //
 	
-    tura=stoi(tural);
+	//tural=tural.substr(2);
+	//tural.erase(remove_if(tural.begin(), tural.end(), [](char c) { return c == '\0'; }), tural.end());
 
+	
+
+	//string line;
+    int lineCount = 0;
+
+    while (getline(statusInput2, line)) {
+        lineCount++;
+
+        if (lineCount == 1) {
+            // Sprawdź, czy pierwsza linia zawiera liczbę (tura)
+            try {
+		
+                tura = stoi(line);
+		
+                // Tutaj możesz wykonać dodatkowe sprawdzenia dotyczące tury, jeśli potrzebujesz.
+            } catch (std::invalid_argument&) {
+                cout << "Błąd w linii " << lineCount << ": Pierwsza linia powinna zawierać liczbę tury." << endl;
+                //return 1;
+            }
+        } else if (lineCount == 2 || lineCount == 3) {
+            // Sprawdź, czy kolejne linie zawierają poprawny format dla gracza
+            if (line.length() < 2 || line[3] == ' '  || line[1] != ' ') {
+		playerGold=tura;
+		enemyGold=2000;
+		tura=0;
+		tryb=1;
+		statusInput2.close();
+    		ifstream statusInput(statusFile.c_str());
+		goto b;
+                //return 1;
+            }
+
+            // Tutaj możesz wykonać dodatkowe sprawdzenia dotyczące gracza, jeśli potrzebujesz.
+        } else if (lineCount > 3) {
+            // Sprawdź, czy kolejne linie zawierają poprawny format dla jednostki lub bazy
+            if (line.length() < 8 || (line[0] != 'P' && line[0] != 'E') || line[1] != ' ' ||
+                line[3] != ' ' ) {
+                std::cout << "Błąd w linii " << lineCount << ": Niepoprawny format dla jednostki lub bazy." << std::endl;
+                //return 1;
+            }
+	}}
+
+    
+	
+    getline(statusInput, tural);
+    //tura=stoi(tural);
+	
     getline(statusInput, playerLine); // Wczytaj linijkę gracza
     getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
-    //playerLine.erase(remove_if(playerLine.begin(), playerLine.end(), [](char c) { return c == '\0'; }), playerLine.end());
+    playerLine.erase(remove_if(playerLine.begin(), playerLine.end(), [](char c) { return c == '\0'; }), playerLine.end());
 
-    //enemyLine.erase(remove_if(enemyLine.begin(), enemyLine.end(), [](char c) { return c == '\0'; }), enemyLine.end());
+    enemyLine.erase(remove_if(enemyLine.begin(), enemyLine.end(), [](char c) { return c == '\0'; }), enemyLine.end());
 // Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
-    if (playerLine[0] == 'P') {
+    if (playerLine[0] == 'P'&& !playerLine.empty()) {
 
-        playerGold = stoi(playerLine.substr(2));
-    } else if (playerLine[0] == 'E') {
-        enemyGold = stoi(playerLine.substr(2));
+	if(playerLine.length()>2){
+	
+        playerGold = stoi(playerLine.substr(2));}
+    } else if (playerLine[0] == 'E'&& !playerLine.empty()) {
+	if(playerLine.length()>2){
+        enemyGold = stoi(playerLine.substr(2));}
     }
     // Sprawdź pierwszą literę w linii i przypisz wartość do odpowiedniej zmiennej
-    if (enemyLine[0] == 'P') {
-        playerGold = stoi(enemyLine.substr(2));
+    if (enemyLine[0] == 'P'&& !enemyLine.empty()) {
+		if(enemyLine.length()>2){
+        playerGold = stoi(enemyLine.substr(2));}
     } else{
-        enemyGold = stoi(enemyLine.substr(2));
+		if(enemyLine.length()>2){
+        enemyGold = stoi(enemyLine.substr(2));}
     }
 
+	b:
+
+	
 	//wczytywanie jednostek i budowli
     while(getline(statusInput, line)) {
         istringstream iss(line);
         char player;
         char type;
         int x, y, health,id;
-	int Btime;
+	int Btime=0;
         iss >> player >> type >>id>> x >> y >> health;
 
         if (player == 'P' || player == 'E') {
@@ -413,6 +489,8 @@ int main(int argc, char** argv) {
                 Base base;
                 char producingUnit;
                 iss >> producingUnit>>Btime;
+		cout<<Btime<<endl;
+		if(Btime==' ')Btime=0;
 		base.producingUnit=producingUnit;	
 		base.id=id;
 		base.player=player;
@@ -442,7 +520,7 @@ int main(int argc, char** argv) {
         }//koniec pierwszy if
     }//koniec while
 	for ( auto& base : bases){
-		if(base.time==0 && base.producingUnit!='0'){
+		if(base.time<=0 && base.producingUnit!='0'){
 			addUnit( units, base,bases);
 			base.producingUnit='0';
 		}
@@ -496,7 +574,7 @@ int main(int argc, char** argv) {
 			if(base.player=='P'){
 			cout<<"wygrał gracz E";			
 			}else{
-			cout<<"wygrał gracz E";
+			cout<<"wygrał gracz P";
 			}
 		}
 	}
