@@ -377,19 +377,9 @@ int main(int argc, char** argv) {
 
     string playerLine, enemyLine,tural;
     getline(statusInput, tural);
-	cout<<tural<<endl;
-	//tural=tural.substr(2);
-	//tural.erase(remove_if(tural.begin(), tural.end(), [](char c) { return c == '\0'; }), tural.end());
-
-	
-
-	
 	
     tura=stoi(tural);
-	  
-cout<<tura<<endl;
 
-	
     getline(statusInput, playerLine); // Wczytaj linijkę gracza
     getline(statusInput, enemyLine);  // Wczytaj linijkę przeciwnika
     //playerLine.erase(remove_if(playerLine.begin(), playerLine.end(), [](char c) { return c == '\0'; }), playerLine.end());
